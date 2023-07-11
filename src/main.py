@@ -7,13 +7,13 @@ logging.basicConfig(format="%(asctime)s | %(levelname)s\t| %(module)s.%(funcName
 main_parent_path = Path(__file__).parent
 sys.path.insert(1, str(main_parent_path.parent))
 
-from resources import confirm_proceeding_with_parameters, verify_user_inputs
+from resources import MONTHS_NUM_TO_NAME, confirm_proceeding_with_parameters, verify_user_inputs
 
 
 def main(argv: list):
     try:
         month, year = verify_user_inputs(argv)
-        confirm_proceeding_with_parameters(month, year)
+        confirm_proceeding_with_parameters(MONTHS_NUM_TO_NAME[month], year)
     except ValueError as ve:
         logging.error(f"<{ve.__class__.__name__}> {ve}\n")
         sys.exit(1)

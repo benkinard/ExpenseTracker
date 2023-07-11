@@ -3,7 +3,6 @@ import logging
 import os
 import sys
 
-
 # Set up ConfigParser
 config = configparser.ConfigParser()
 config_file = None
@@ -19,8 +18,9 @@ except FileNotFoundError as fnfe:
     sys.exit(1)
 config.read(config_file)
 
-
 # Constants
+MONTHS_NUM_TO_NAME = {1: "January", 2: "February", 3: "March", 4: "April", 5: "May", 6: "June", 7: "July",
+                      8: "August", 9: "September", 10: "October", 11: "November", 12: "December"}
 try:
     CREDIT_CARD_KEYWORDS = config.get("Transaction Keywords", "CREDIT_CARD").split(",")
 
@@ -42,14 +42,14 @@ except configparser.NoOptionError as noe:
 
 
 # Functions
-def confirm_proceeding_with_parameters(month: str, year: str):
+def confirm_proceeding_with_parameters(month: str, year: int):
     """Confirm the month and year parameters input by the user before proceeding with update
 
     Parameters
     ----------
     month : str
         The name of the month to be updated in the Income & Expense Tracker
-    year : str
+    year : int
         The year to be updated in the Income & Expense Tracker
 
     Raises
@@ -70,7 +70,7 @@ def confirm_proceeding_with_parameters(month: str, year: str):
         logging.info(f"Updating {month} {year} Income & Expenses...")
 
 
-def verify_user_inputs(argv: list) -> (str, str):
+def verify_user_inputs(argv: list) -> (int, int):
     """Verify inputs from the user match expectations
 
     Parameters
@@ -80,16 +80,14 @@ def verify_user_inputs(argv: list) -> (str, str):
 
     Returns
     -------
-    tuple[str, str]
-        The month (spelled out) and year of the Income & Expenses sheet to update
+    tuple[int, int]
+        The month and year of the Income & Expenses sheet to update
 
     Raises
     ------
     ValueError
         If user inputs do not meet expectations
     """
-    months_num_to_name = {1: "January", 2: "February", 3: "March", 4: "April", 5: "May", 6: "June", 7: "July",
-                          8: "August", 9: "September", 10: "October", 11: "November", 12: "December"}
     expected_num_user_inputs = 3
     expected_month_input_length = 2
     expected_year_input_length = 4
@@ -121,4 +119,4 @@ def verify_user_inputs(argv: list) -> (str, str):
         raise ValueError(f"Invalid year parameter: {argv[year_input_idx]}. Expected year later than "
                          f"{expense_tracker_start_year - 1}")
 
-    return months_num_to_name[month], argv[year_input_idx]
+    return month, year
