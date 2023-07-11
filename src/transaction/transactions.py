@@ -1,6 +1,8 @@
-from transaction.dao.transaction_dao import TransactionDAO
+from transaction.dao.transaction_dao import TransactionDAO, TransactionDataPullError
 from tracker.resources import CREDIT_CARD_KEYWORDS
+import logging
 import pandas as pd
+import sys
 
 
 class Transactions:
@@ -29,9 +31,13 @@ class Transactions:
         return len(self.__credit_card_trx)
 
     def get_transactions_for_the_period(self):
-        self.__checking_acct_trx = self.transaction_dao.pull_checking_account_transactions(self.month, self.year)
-        self.__credit_card_trx = self.transaction_dao.pull_credit_card_transactions(self.month, self.year)
-        self.__filter_income_from_expenses()
+        try:
+            self.__checking_acct_trx = self.transaction_dao.pull_checking_account_transactions(self.month, self.year)
+            self.__credit_card_trx = self.transaction_dao.pull_credit_card_transactions(self.month, self.year)
+            self.__filter_income_from_expenses()
+        except TransactionDataPullError as tdpe:
+            logging.error(f"<{tdpe.__class__.__name__}> {tdpe}\n")
+            sys.exit(1)
 
     # Private methods
     def __filter_income_from_expenses(self):
