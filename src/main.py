@@ -16,6 +16,7 @@ except ValueError as root_idx_e:
 sys.path.insert(ROOT_PATH_IDX, str(PROJECT_ROOT_PATH))
 
 from tracker.resources import MONTHS_NUM_TO_NAME, confirm_proceeding_with_parameters, verify_user_inputs
+from tracker.income_expense_tracker import IncomeExpenseTracker, TrackerError
 from transaction.transactions import Transactions
 from transaction.dao.transaction_dao import FlatFileTransactionDAO
 
@@ -24,17 +25,22 @@ def main(argv: list):
     try:
         month, year = verify_user_inputs(argv)
         confirm_proceeding_with_parameters(MONTHS_NUM_TO_NAME[month], year)
-        transactions = Transactions(month, year, FlatFileTransactionDAO(sys.path[ROOT_PATH_IDX]))
-        transactions.get_transactions_for_the_period()
-        print(f"# Checking Account Transactions: {transactions.get_num_checking_account_transactions()}",
-              f"# Credit Card Transactions: {transactions.get_num_credit_card_transactions()}",
-              f"# Income Transactions: {len(transactions.get_income())}",
-              f"# Expense Transactions: {len(transactions.get_expenses())}", sep="\n*****\n")
     except ValueError as ve:
         logging.error(f"<{ve.__class__.__name__}> {ve}\n")
         sys.exit(1)
     except KeyboardInterrupt as ki:
         logging.info(f"<{ki.__class__.__name__}> {ki}\n")
+        sys.exit(1)
+
+    transactions = Transactions(month, year, FlatFileTransactionDAO(sys.path[ROOT_PATH_IDX]))
+    transactions.get_transactions_for_the_period()
+
+    try:
+        income_expense_tracker = IncomeExpenseTracker(MONTHS_NUM_TO_NAME[month], year,
+                                                      f"{sys.path[ROOT_PATH_IDX]}/Tracker")
+        logging.info("Connected to Income & Expense Tracker")
+    except TrackerError as te:
+        logging.error(f"<{te.__class__.__name__}> {te}\n")
         sys.exit(1)
 
 
