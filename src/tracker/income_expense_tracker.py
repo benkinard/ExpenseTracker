@@ -1,33 +1,8 @@
 import logging
 import openpyxl
+import tracker.exceptions
 
 
-# Exceptions
-class TrackerError(Exception):
-    pass
-
-
-class TrackerWorkbookDoesNotExist(TrackerError):
-    pass
-
-
-class TrackerWorksheetDoesNotExist(TrackerError):
-    pass
-
-
-class TrackerSectionError(TrackerError):
-    pass
-
-
-class TrackerSectionAlreadyExists(TrackerSectionError):
-    pass
-
-
-class TrackerSectionDoesNotExist(TrackerSectionError):
-    pass
-
-
-# IncomeExpenseTracker is composed of TrackerSections
 class TrackerSection:
     def __init__(self):
         pass
@@ -50,23 +25,24 @@ class IncomeExpenseTracker:
             self.__xl_workbook: openpyxl.Workbook = openpyxl.load_workbook(self.__xl_workbook_path)
             self.__target_xl_worksheet: openpyxl.workbook.workbook.Worksheet = self.__xl_workbook[f"{month} {year}"]
         except FileNotFoundError as fnfe:
-            raise TrackerWorkbookDoesNotExist(fnfe)
+            raise tracker.exceptions.TrackerWorkbookDoesNotExist(fnfe)
         except KeyError as ke:
-            raise TrackerWorksheetDoesNotExist(ke)
+            raise tracker.exceptions.TrackerWorksheetDoesNotExist(ke)
         self.__sections: dict[str, TrackerSection] = {}
 
     # Public methods
     def add_section(self, key: str, section: TrackerSection):
         if key in self.__sections.keys():
-            raise TrackerSectionAlreadyExists(f"Section \"{key}\" already exists. If you'd like to replace the "
-                                              f"existing section, make a call to the \"replace_section()\" "
-                                              f"method instead.")
+            raise tracker.exceptions.TrackerSectionAlreadyExists(f"Section \"{key}\" already exists. If you'd like to "
+                                                                 f"replace the existing section, make a call to the "
+                                                                 f"\"replace_section()\" method instead.")
         else:
             self.__sections[key] = section
 
     def replace_section(self, key: str, section: TrackerSection):
         if key not in self.__sections.keys():
-            raise TrackerSectionDoesNotExist(f"Cannot replace section \"{key}\" because it does not exist")
+            raise tracker.exceptions.TrackerSectionDoesNotExist(f"Cannot replace section \"{key}\" because it does "
+                                                                f"not exist")
         else:
             self.__sections[key] = section
 
