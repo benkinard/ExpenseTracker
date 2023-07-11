@@ -4,6 +4,7 @@ import os
 import sys
 
 
+# Set up ConfigParser
 config = configparser.ConfigParser()
 config_file = None
 for path in sys.path[:2]:
@@ -14,7 +15,7 @@ try:
     if not config_file:
         raise FileNotFoundError("Please create a \"config.ini\" file in the project root directory")
 except FileNotFoundError as fnfe:
-    logging.error(f"{fnfe.__class__} {fnfe}\n")
+    logging.error(f"<{fnfe.__class__.__name__}> {fnfe}\n")
     sys.exit(1)
 config.read(config_file)
 
@@ -33,10 +34,10 @@ try:
 
     RENT_UTIL_KEYWORDS = config.get("Transaction Keywords", "RENT_UTIL").split(",")
 except configparser.NoSectionError as nse:
-    logging.error(f"{nse.__class__} {nse}\n")
+    logging.error(f"{nse.__class__.__name__} {nse}\n")
     sys.exit(1)
 except configparser.NoOptionError as noe:
-    logging.error(f"{noe.__class__} {noe}\n")
+    logging.error(f"{noe.__class__.__name__} {noe}\n")
     sys.exit(1)
 
 
