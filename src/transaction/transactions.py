@@ -37,8 +37,9 @@ class Transactions:
     def __filter_income_from_expenses(self):
         checking = self.__checking_acct_trx.copy()
         cc = self.__credit_card_trx.copy()
+        column_selection = list(checking.columns[1:4])
 
-        checking_expenses = checking.loc[checking['Details'] == 'DEBIT', list(checking.columns[1:4])]
+        checking_expenses = checking.loc[checking['Details'] == 'DEBIT', column_selection]
         checking_expenses = checking_expenses.loc[list(map(lambda trx_desc: all(kywd not in trx_desc for kywd in
                                                                                 CREDIT_CARD_KEYWORDS),
                                                            checking_expenses['Description'])), :].reset_index(drop=True)
@@ -46,5 +47,4 @@ class Transactions:
         self.__expenses = pd.concat([checking_expenses, cc_expenses]).sort_values(by=['Posting Date'],
                                                                                   ignore_index=True)
 
-        self.__income = checking.loc[checking['Details'] == 'CREDIT',
-                                     list(checking.columns[1:4])].reset_index(drop=True)
+        self.__income = checking.loc[checking['Details'] == 'CREDIT', column_selection].reset_index(drop=True)
