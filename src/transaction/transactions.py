@@ -1,5 +1,5 @@
-from dao.transaction_dao import TransactionDAO
-from resources import CREDIT_CARD_KEYWORDS
+from transaction.dao.transaction_dao import TransactionDAO
+from tracker.resources import CREDIT_CARD_KEYWORDS
 import pandas as pd
 
 

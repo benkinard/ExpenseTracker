@@ -7,7 +7,7 @@ logging.basicConfig(format="%(asctime)s | %(levelname)s\t| %(module)s.%(funcName
 main_parent_path = Path(__file__).parent
 sys.path.insert(1, str(main_parent_path.parent))
 
-from resources import MONTHS_NUM_TO_NAME, confirm_proceeding_with_parameters, verify_user_inputs
+from tracker.resources import MONTHS_NUM_TO_NAME, confirm_proceeding_with_parameters, verify_user_inputs
 from transaction.transactions import Transactions
 from transaction.dao.transaction_dao import FlatFileTransactionDAO
 
