@@ -39,6 +39,7 @@ def main(argv: list):
         income_expense_tracker = IncomeExpenseTracker(MONTHS_NUM_TO_NAME[month], year,
                                                       f"{sys.path[ROOT_PATH_IDX]}/Tracker")
         logging.info("Connected to Income & Expense Tracker")
+        income_expense_tracker.update_tracker()
     except TrackerError as te:
         logging.error(f"<{te.__class__.__name__}> {te}\n")
         sys.exit(1)
