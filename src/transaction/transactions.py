@@ -45,12 +45,18 @@ class Transactions:
         cc = self.__credit_card_trx.copy()
         column_selection = list(checking.columns[1:4])
 
-        checking_expenses = checking.loc[checking['Details'] == 'DEBIT', column_selection]
-        checking_expenses = checking_expenses.loc[list(map(lambda trx_desc: all(kywd not in trx_desc for kywd in
-                                                                                CREDIT_CARD_KEYWORDS),
-                                                           checking_expenses['Description'])), :].reset_index(drop=True)
-        cc_expenses = cc.loc[cc['Type'] == 'Sale', ['Posting Date', 'Description', 'Amount']].reset_index(drop=True)
-        self.__expenses = pd.concat([checking_expenses, cc_expenses]).sort_values(by=['Posting Date'],
-                                                                                  ignore_index=True)
+        try:
+            checking_expenses = checking.loc[checking['Details'] == 'DEBIT', column_selection]
+            checking_expenses = checking_expenses.loc[list(map(lambda trx_desc: all(kywd not in trx_desc for kywd in
+                                                                                    CREDIT_CARD_KEYWORDS),
+                                                               checking_expenses['Description'])), :]
+            checking_expenses.reset_index(drop=True, inplace=True)
+            cc_expenses = cc.loc[cc['Type'] == 'Sale', ['Posting Date', 'Description', 'Amount']].reset_index(drop=True)
+            self.__expenses = pd.concat([checking_expenses, cc_expenses]).sort_values(by=['Posting Date'],
+                                                                                      ignore_index=True)
 
-        self.__income = checking.loc[checking['Details'] == 'CREDIT', column_selection].reset_index(drop=True)
+            self.__income = checking.loc[checking['Details'] == 'CREDIT', column_selection].reset_index(drop=True)
+        except KeyError as ke:
+            logging.error(f"<{ke.__class__.__name__}> Column not found in checking or credit card transaction tables: "
+                          f"{ke}")
+            sys.exit(1)
