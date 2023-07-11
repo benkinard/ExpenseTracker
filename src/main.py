@@ -9,12 +9,19 @@ sys.path.insert(1, str(main_parent_path.parent))
 
 from resources import MONTHS_NUM_TO_NAME, confirm_proceeding_with_parameters, verify_user_inputs
 from transaction.transactions import Transactions
+from transaction.dao.transaction_dao import FlatFileTransactionDAO
 
 
 def main(argv: list):
     try:
         month, year = verify_user_inputs(argv)
         confirm_proceeding_with_parameters(MONTHS_NUM_TO_NAME[month], year)
+        transactions = Transactions(month, year, FlatFileTransactionDAO(sys.path[1]))
+        transactions.get_transactions_for_the_period()
+        print(f"# Checking Account Transactions: {transactions.get_num_checking_account_transactions()}",
+              f"# Credit Card Transactions: {transactions.get_num_credit_card_transactions()}",
+              f"# Income Transactions: {len(transactions.get_income())}",
+              f"# Expense Transactions: {len(transactions.get_expenses())}", sep="\n*****\n")
     except ValueError as ve:
         logging.error(f"<{ve.__class__.__name__}> {ve}\n")
         sys.exit(1)
