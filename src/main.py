@@ -16,7 +16,8 @@ except ValueError as root_idx_e:
 sys.path.insert(ROOT_PATH_IDX, str(PROJECT_ROOT_PATH))
 
 from tracker.resources import MONTHS_NUM_TO_NAME, confirm_proceeding_with_parameters, verify_user_inputs
-from tracker.income_expense_tracker import IncomeExpenseTracker, TrackerError
+from tracker.income_expense_tracker import IncomeExpenseTracker
+from tracker.exceptions import TrackerError
 from transaction.transactions import Transactions
 from transaction.dao.transaction_dao import FlatFileTransactionDAO
 
