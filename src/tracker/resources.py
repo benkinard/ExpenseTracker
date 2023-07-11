@@ -34,10 +34,10 @@ try:
 
     RENT_UTIL_KEYWORDS = config.get("Transaction Keywords", "RENT_UTIL").split(",")
 except configparser.NoSectionError as nse:
-    logging.error(f"{nse.__class__.__name__} {nse}\n")
+    logging.error(f"<{nse.__class__.__name__}> {nse}\n")
     sys.exit(1)
 except configparser.NoOptionError as noe:
-    logging.error(f"{noe.__class__.__name__} {noe}\n")
+    logging.error(f"<{noe.__class__.__name__}> {noe}\n")
     sys.exit(1)
 
 
