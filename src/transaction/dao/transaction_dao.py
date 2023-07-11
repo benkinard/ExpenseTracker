@@ -17,8 +17,9 @@ class FlatFileTransactionDAO(TransactionDAO):
         super().__init__()
         self.root_path: str = root_path
 
+    # Public methods
     def pull_checking_account_transactions(self, month: int, year: int) -> pd.DataFrame:
-        mm = str(month) if month >= 10 else f"0{str(month)}"
+        mm = self.__format_month(month)
         checking_acct_trx = pd.read_csv(f"{self.root_path}/Tracker/{year}/{mm}_Transaction_Data/checking_{mm}.csv",
                                         index_col=False)
         checking_acct_trx['Balance'] = pd.to_numeric(checking_acct_trx['Balance'], errors='coerce')
@@ -26,13 +27,18 @@ class FlatFileTransactionDAO(TransactionDAO):
         return checking_acct_trx.sort_values(by=['Posting Date'], ignore_index=True)
 
     def pull_credit_card_transactions(self, month: int, year: int) -> pd.DataFrame:
-        mm = str(month) if month >= 10 else f"0{str(month)}"
+        mm = self.__format_month(month)
         credit_card_trx = pd.read_csv(f"{self.root_path}/Tracker/{year}/{mm}_Transaction_Data/credit_card_{mm}.csv",
                                       index_col=False)
         credit_card_trx.rename(columns={'Post Date': 'Posting Date'}, inplace=True)
         credit_card_trx['Transaction Date'] = pd.to_datetime(credit_card_trx['Transaction Date'])
         credit_card_trx['Posting Date'] = pd.to_datetime(credit_card_trx['Posting Date'])
         return credit_card_trx.sort_values(by=['Posting Date'], ignore_index=True)
+
+    # Private methods
+    @staticmethod
+    def __format_month(month: int) -> str:
+        return str(month) if month >= 10 else f"0{str(month)}"
 
 
 class APITransactionDAO(TransactionDAO):
