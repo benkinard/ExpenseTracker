@@ -1,11 +1,19 @@
-from pathlib import Path
 import logging
+from pathlib import Path
+import os
 import sys
 
 logging.basicConfig(format="%(asctime)s | %(levelname)s\t| %(module)s.%(funcName)s:%(lineno)d - %(message)s",
                     datefmt="%Y-%m-%d %H:%M:%S", level=logging.DEBUG)
-main_parent_path = Path(__file__).parent
-sys.path.insert(1, str(main_parent_path.parent))
+
+PROJECT_ROOT_PATH = Path(__file__).parent.parent
+try:
+    ROOT_PATH_IDX = int(os.getenv('ROOT_PATH_INDEX'))
+except ValueError as root_idx_e:
+    logging.error(f"<{root_idx_e.__class__.__name__}> {root_idx_e}\n")
+    sys.exit(1)
+# Insert the path to the project's root directory at the specified index of sys.path
+sys.path.insert(ROOT_PATH_IDX, str(PROJECT_ROOT_PATH))
 
 from tracker.resources import MONTHS_NUM_TO_NAME, confirm_proceeding_with_parameters, verify_user_inputs
 from transaction.transactions import Transactions
@@ -16,7 +24,7 @@ def main(argv: list):
     try:
         month, year = verify_user_inputs(argv)
         confirm_proceeding_with_parameters(MONTHS_NUM_TO_NAME[month], year)
-        transactions = Transactions(month, year, FlatFileTransactionDAO(sys.path[1]))
+        transactions = Transactions(month, year, FlatFileTransactionDAO(sys.path[ROOT_PATH_IDX]))
         transactions.get_transactions_for_the_period()
         print(f"# Checking Account Transactions: {transactions.get_num_checking_account_transactions()}",
               f"# Credit Card Transactions: {transactions.get_num_credit_card_transactions()}",

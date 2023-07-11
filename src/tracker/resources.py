@@ -3,10 +3,13 @@ import logging
 import os
 import sys
 
+
 # Set up ConfigParser
 config = configparser.ConfigParser()
 config_file = None
-for path in sys.path[:2]:
+# Define which paths in sys.path to search for the config file
+PROJECT_PATHS_STOP_IDX = int(os.getenv('ROOT_PATH_INDEX')) + 1
+for path in sys.path[:PROJECT_PATHS_STOP_IDX]:
     if os.path.isfile(f"{path}/config.ini"):
         config_file = f"{path}/config.ini"
         break
