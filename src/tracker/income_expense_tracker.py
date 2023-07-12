@@ -150,6 +150,7 @@ class IncomeExpenseTracker:
 
     # Private methods
     def __clear_tracker_contents(self):
+        self.__xl_worksheet["T1"] = None
         for section in self.__sections.values():
             section.clear_contents()
 
@@ -161,6 +162,7 @@ class IncomeExpenseTracker:
         self.__transactions.get_transactions_for_the_period()
 
     def __write_transaction_data_to_tracker(self):
+        self.__xl_worksheet["T1"] = self.__transactions.get_as_of_date()
         for section in self.__sections.values():
             if section.trx_type == "expense":
                 trx = self.__transactions.get_expenses()

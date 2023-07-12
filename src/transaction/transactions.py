@@ -1,5 +1,6 @@
 from transaction.dao.transaction_dao import TransactionDAO, TransactionDataPullError
 from tracker.resources import CREDIT_CARD_KEYWORDS
+from datetime import datetime
 import logging
 import pandas as pd
 import sys
@@ -16,8 +17,12 @@ class Transactions:
         self.__credit_card_trx: pd.DataFrame = pd.DataFrame()
         self.__income: pd.DataFrame = pd.DataFrame()
         self.__expenses: pd.DataFrame = pd.DataFrame()
+        self.__as_of_date: datetime = datetime.now()
 
     # Public methods
+    def get_as_of_date(self) -> datetime:
+        return self.__as_of_date
+
     def get_expenses(self) -> pd.DataFrame:
         return self.__expenses.copy()
 
@@ -57,6 +62,10 @@ class Transactions:
                                                                                       ignore_index=True)
 
             self.__income = checking.loc[checking['Details'] == 'CREDIT', column_selection].reset_index(drop=True)
+
+            checking_latest_date = checking.iloc[-1, list(checking.columns).index('Posting Date')]
+            cc_latest_date = cc.iloc[-1, list(cc.columns).index('Posting Date')]
+            self.__as_of_date = checking_latest_date if checking_latest_date > cc_latest_date else cc_latest_date
         except KeyError as ke:
             logging.error(f"<{ke.__class__.__name__}> Column not found in checking or credit card transaction tables: "
                           f"{ke}")
