@@ -14,11 +14,7 @@ class TrackerSectionError(TrackerError):
     pass
 
 
-class TrackerSectionAlreadyExists(TrackerSectionError):
-    pass
-
-
-class TrackerSectionDoesNotExist(TrackerSectionError):
+class InsufficientTrackerSectionSize(TrackerSectionError):
     pass
 
 
@@ -27,4 +23,12 @@ class InvalidTrxType(TrackerSectionError):
 
 
 class ReplaceTrackerSectionError(TrackerSectionError):
+    pass
+
+
+class TrackerSectionAlreadyExists(TrackerSectionError):
+    pass
+
+
+class TrackerSectionDoesNotExist(TrackerSectionError):
     pass

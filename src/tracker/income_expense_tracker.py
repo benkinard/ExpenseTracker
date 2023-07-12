@@ -26,6 +26,10 @@ class TrackerSection:
         self.__section_trx: pd.DataFrame = transactions.loc[list(map(trx_filter(is_inverse_section),
                                                                      transactions['Description'])),
                                                             :].reset_index(drop=True)
+        if len(self.__section_trx) > (max_row - min_row + 1):
+            raise tracker.exceptions.InsufficientTrackerSectionSize(f"TrackerSection transactions "
+                                                                    f"({len(self.__section_trx)}) exceeds row allowance"
+                                                                    f" ({max_row - min_row + 1})")
         self.__keywords: list[str] = keywords
 
     def clear_contents(self):
