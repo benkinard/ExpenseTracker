@@ -16,9 +16,17 @@ class TrackerSection:
         self.max_row: int = max_row
         self.min_col: int = min_col
         self.max_col: int = max_col
+
         # Private instance variables
+        def trx_filter(is_inverse: bool):
+            if is_inverse:
+                return lambda text: all(key_word not in text for key_word in keywords)
+            else:
+                return lambda text: any(key_word in text for key_word in keywords)
+        self.__section_trx: pd.DataFrame = transactions.loc[list(map(trx_filter(is_inverse_section),
+                                                                     transactions['Description'])),
+                                                            :].reset_index(drop=True)
         self.__keywords: list[str] = keywords
-        self.__section_trx: pd.DataFrame = transactions # TODO: Filter based on keywords/is_inverse_section
 
     def clear_contents(self):
         pass
