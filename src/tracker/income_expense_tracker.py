@@ -53,31 +53,35 @@ class IncomeExpenseTracker:
     # Public methods
     def add_section(self, name: str, keywords: list[str], min_row: int, max_row: int, min_col: int, max_col: int,
                     trx_type: str = "expense", is_inverse_section: bool = False):
-        # TODO: Check that trx_type equals "income" or "expense"
+        if trx_type not in ["expense", "income"]:
+            raise tracker.exceptions.InvalidTrxType(f"Expected \"expense\" or \"income\" for trx_type, got "
+                                                    f"\"{trx_type}\"")
         if name in self.__sections.keys():
             raise tracker.exceptions.TrackerSectionAlreadyExists(f"Section \"{name}\" already exists. If you'd like to "
                                                                  f"replace the existing section, make a call to the "
                                                                  f"\"replace_section()\" method instead.")
-        else:
-            trx = self.__transactions.get_expenses() if trx_type == "expenses" else self.__transactions.get_income()
-            section = TrackerSection(name, self.__target_xl_worksheet, trx, keywords, min_row, max_row, min_col,
-                                     max_col, is_inverse_section)
-            self.__sections[section.name] = section
+
+        trx = self.__transactions.get_expenses() if trx_type == "expense" else self.__transactions.get_income()
+        section = TrackerSection(name, self.__target_xl_worksheet, trx, keywords, min_row, max_row, min_col, max_col,
+                                 is_inverse_section)
+        self.__sections[section.name] = section
 
     def replace_section(self, name: str, keywords: list[str], min_row: int, max_row: int, min_col: int, max_col: int,
                         trx_type: str = "expense", is_inverse_section: bool = False):
-        # TODO: Check that trx_type equals "income" or "expense"
+        if trx_type not in ["expense", "income"]:
+            raise tracker.exceptions.InvalidTrxType(f"Expected \"expense\" or \"income\" for trx_type, got "
+                                                    f"\"{trx_type}\"")
         if name not in self.__sections.keys():
             raise tracker.exceptions.TrackerSectionDoesNotExist(f"Cannot replace section \"{name}\" because it does "
                                                                 f"not exist")
-        else:
-            trx = self.__transactions.get_expenses() if trx_type == "expenses" else self.__transactions.get_income()
-            section = TrackerSection(name, self.__target_xl_worksheet, trx, keywords, min_row, max_row, min_col,
-                                     max_col, is_inverse_section)
-            if section == self.__sections[name]:
-                # TODO: raise exception
-                pass
-            self.__sections[name] = section
+
+        trx = self.__transactions.get_expenses() if trx_type == "expense" else self.__transactions.get_income()
+        section = TrackerSection(name, self.__target_xl_worksheet, trx, keywords, min_row, max_row, min_col,
+                                 max_col, is_inverse_section)
+        if section == self.__sections[name]:
+            raise tracker.exceptions.ReplaceTrackerSectionError(f"Replacement TrackerSection is identical to current "
+                                                                f"one")
+        self.__sections[name] = section
 
     def update_tracker(self):
         logging.info("Clearing Income & Expense Tracker Contents")

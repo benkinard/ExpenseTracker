@@ -20,3 +20,11 @@ class TrackerSectionAlreadyExists(TrackerSectionError):
 
 class TrackerSectionDoesNotExist(TrackerSectionError):
     pass
+
+
+class InvalidTrxType(TrackerSectionError):
+    pass
+
+
+class ReplaceTrackerSectionError(TrackerSectionError):
+    pass
