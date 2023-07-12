@@ -74,6 +74,12 @@ class IncomeExpenseTracker:
                                  is_inverse_section)
         self.__sections[section.name] = section
 
+    def delete_section(self, name: str):
+        if name not in self.__sections.keys():
+            raise tracker.exceptions.TrackerSectionDoesNotExist(f"Cannot delete section \"{name}\" because it does "
+                                                                f"not exist")
+        del self.__sections[name]
+
     def replace_section(self, name: str, keywords: list[str], min_row: int, max_row: int, min_col: int, max_col: int,
                         trx_type: str = "expense", is_inverse_section: bool = False):
         if trx_type not in ["expense", "income"]:
