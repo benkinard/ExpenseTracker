@@ -78,6 +78,8 @@ def main(argv: list):
         logging.info(f"Closing connection to {MONTHS_NUM_TO_NAME[month]} {year} Income & Expense Tracker")
         income_expense_tracker.close_tracker()
 
+    logging.info(f"Successfully Updated {MONTHS_NUM_TO_NAME[month]} {year} Income & Expense Tracker")
+
 
 if __name__ == "__main__":
     try:

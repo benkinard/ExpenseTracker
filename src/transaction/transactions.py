@@ -47,9 +47,10 @@ class Transactions:
 
         try:
             checking_expenses = checking.loc[checking['Details'] == 'DEBIT', column_selection]
-            checking_expenses = checking_expenses.loc[list(map(lambda trx_desc: all(kywd not in trx_desc for kywd in
-                                                                                    CREDIT_CARD_KEYWORDS),
-                                                               checking_expenses['Description'])), :]
+            paying_off_cc_filter = list(map(lambda trx_desc: all(kywd not in trx_desc.upper() for kywd in
+                                                                 CREDIT_CARD_KEYWORDS),
+                                            checking_expenses['Description']))
+            checking_expenses = checking_expenses.loc[paying_off_cc_filter, :]
             checking_expenses.reset_index(drop=True, inplace=True)
             cc_expenses = cc.loc[cc['Type'] == 'Sale', ['Posting Date', 'Description', 'Amount']].reset_index(drop=True)
             self.__expenses = pd.concat([checking_expenses, cc_expenses]).sort_values(by=['Posting Date'],

@@ -46,6 +46,14 @@ class TrackerSection:
                                                                     f"({len(section_trx)}) exceeds row allowance "
                                                                     f"({self.max_row - self.min_row + 1})")
 
+        date_column = chr(64 + self.min_col)
+        desc_column = chr(64 + self.min_col + 1)
+        amt_column = chr(64 + self.max_col)
+        for idx, row in section_trx.iterrows():
+            self.xl_worksheet[f"{date_column}{str(self.min_row + idx)}"] = row['Posting Date']
+            self.xl_worksheet[f"{desc_column}{str(self.min_row + idx)}"] = row['Description']
+            self.xl_worksheet[f"{amt_column}{str(self.min_row + idx)}"] = row['Amount']
+
     # Private methods
     def __eq__(self, other):
         return self.name == other.name and self.trx_type == other.trx_type \
@@ -57,16 +65,16 @@ class TrackerSection:
     def __trx_filter(self):
         if self.__is_inverse_section:
             if len(self.__keyword_exceptions) == 0:
-                return lambda text: all(key_word not in text for key_word in self.__keywords)
+                return lambda text: all(key_word not in text.upper() for key_word in self.__keywords)
             else:
-                return lambda text: all(key_word not in text for key_word in self.__keywords) or \
-                                    any(kw_ex in text for kw_ex in self.__keyword_exceptions)
+                return lambda text: all(key_word not in text.upper() for key_word in self.__keywords) or \
+                                    any(kw_ex in text.upper() for kw_ex in self.__keyword_exceptions)
         else:
             if len(self.__keyword_exceptions) == 0:
-                return lambda text: any(key_word in text for key_word in self.__keywords)
+                return lambda text: any(key_word in text.upper() for key_word in self.__keywords)
             else:
-                return lambda text: (any(key_word in text for key_word in self.__keywords)) and \
-                                    all(kw_ex not in text for kw_ex in self.__keyword_exceptions)
+                return lambda text: (any(key_word in text.upper() for key_word in self.__keywords)) and \
+                                    all(kw_ex not in text.upper() for kw_ex in self.__keyword_exceptions)
 
 
 class IncomeExpenseTracker:
