@@ -1,4 +1,6 @@
 from transaction.transactions import Transactions
+from transaction.dao.transaction_dao import FlatFileTransactionDAO
+from typing import Optional
 import logging
 import openpyxl
 import pandas as pd
@@ -46,16 +48,18 @@ class TrackerSection:
 
 
 class IncomeExpenseTracker:
-    def __init__(self, month: str, year: int, tracker_root_path: str):
+    def __init__(self, month_name: str, month_num: int, year: int, tracker_root_path: str):
         # Public instance variables
-        self.month: str = month
+        self.month_name: str = month_name
+        self.month_num: int = month_num
         self.year: int = year
         # Private instance variables
-        self.__transactions: Transactions = None
+        self.__tracker_root_path: str = tracker_root_path
+        self.__transactions: Optional[Transactions] = None
         self.__xl_workbook_path: str = f"{tracker_root_path}/{year}/Income&Expenses{year}.xlsx"
         try:
             self.__xl_workbook: openpyxl.Workbook = openpyxl.load_workbook(self.__xl_workbook_path)
-            self.__target_xl_worksheet: openpyxl.workbook.workbook.Worksheet = self.__xl_workbook[f"{month} {year}"]
+            self.__target_xl_worksheet: openpyxl.workbook.workbook.Worksheet = self.__xl_workbook[f"{month_name} {year}"]
         except FileNotFoundError as fnfe:
             raise tracker.exceptions.TrackerWorkbookDoesNotExist(fnfe)
         except KeyError as ke:
@@ -104,6 +108,8 @@ class IncomeExpenseTracker:
     def update_tracker(self):
         logging.info("Clearing Income & Expense Tracker Contents")
         self.__clear_tracker_contents()
+        logging.info("Pulling Updated Transactions Data for the period")
+        self.__get_transactions()
         logging.info("Writing Updated Transactions Data to Income & Expense Tracker")
         self.__write_transaction_data_to_tracker()
 
@@ -111,6 +117,13 @@ class IncomeExpenseTracker:
     def __clear_tracker_contents(self):
         for section in self.__sections.values():
             section.clear_contents()
+
+    def __get_transactions(self):
+        if not self.__transactions:
+            self.__transactions = Transactions(self.month_num, self.year,
+                                               FlatFileTransactionDAO(self.__tracker_root_path))
+
+        self.__transactions.get_transactions_for_the_period()
 
     def __write_transaction_data_to_tracker(self):
         for section in self.__sections.values():

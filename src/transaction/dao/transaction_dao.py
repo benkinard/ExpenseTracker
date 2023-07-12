@@ -17,15 +17,15 @@ class TransactionDAO(ABC):
 
 
 class FlatFileTransactionDAO(TransactionDAO):
-    def __init__(self, root_path: str):
+    def __init__(self, tracker_root_path: str):
         super().__init__()
-        self.root_path: str = root_path
+        self.tracker_root_path: str = tracker_root_path
 
     # Public methods
     def pull_checking_account_transactions(self, month: int, year: int) -> pd.DataFrame:
         mm = self.__format_month(month)
         try:
-            checking_acct_trx = pd.read_csv(f"{self.root_path}/Tracker/{year}/{mm}_Transaction_Data/checking_{mm}.csv",
+            checking_acct_trx = pd.read_csv(f"{self.tracker_root_path}/{year}/{mm}_Transaction_Data/checking_{mm}.csv",
                                             index_col=False)
             checking_acct_trx['Balance'] = pd.to_numeric(checking_acct_trx['Balance'], errors='coerce')
             checking_acct_trx['Posting Date'] = pd.to_datetime(checking_acct_trx['Posting Date'])
@@ -43,7 +43,7 @@ class FlatFileTransactionDAO(TransactionDAO):
     def pull_credit_card_transactions(self, month: int, year: int) -> pd.DataFrame:
         mm = self.__format_month(month)
         try:
-            credit_card_trx = pd.read_csv(f"{self.root_path}/Tracker/{year}/{mm}_Transaction_Data/credit_card_{mm}.csv",
+            credit_card_trx = pd.read_csv(f"{self.tracker_root_path}/{year}/{mm}_Transaction_Data/credit_card_{mm}.csv",
                                           index_col=False)
             credit_card_trx.rename(columns={'Post Date': 'Posting Date'}, inplace=True)
             credit_card_trx['Transaction Date'] = pd.to_datetime(credit_card_trx['Transaction Date'])
