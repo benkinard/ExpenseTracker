@@ -1,3 +1,6 @@
+from openpyxl.cell.cell import Cell
+from openpyxl.workbook.workbook import Workbook
+from openpyxl.worksheet.worksheet import Worksheet
 from transaction.transactions import Transactions
 from transaction.dao.transaction_dao import FlatFileTransactionDAO
 from typing import Optional
@@ -8,15 +11,15 @@ import tracker.exceptions
 
 
 class TrackerSection:
-    def __init__(self, name: str, xl_worksheet: openpyxl.workbook.workbook.Worksheet, trx_type: str,
-                 keywords: list[str], min_row: int, max_row: int, min_col: int, max_col: int,
+    def __init__(self, name: str, xl_worksheet: Worksheet, trx_type: str, keywords: list[str], min_row: int,
+                 max_row: int, min_col: int, max_col: int, keyword_exceptions: list[str] = None,
                  is_inverse_section: bool = False):
         if trx_type not in ["expense", "income"]:
             raise tracker.exceptions.InvalidTrxType(f"TrackerSection requires \"expense\" or \"income\" for trx_type, "
                                                     f"got \"{trx_type}\"")
         # Public instance variables
         self.name: str = name
-        self.xl_worksheet: openpyxl.workbook.workbook.Worksheet = xl_worksheet
+        self.xl_worksheet: Worksheet = xl_worksheet
         self.trx_type: str = trx_type
         self.min_row: int = min_row
         self.max_row: int = max_row
@@ -24,11 +27,16 @@ class TrackerSection:
         self.max_col: int = max_col
         # Private instance variables
         self.__keywords: list[str] = keywords
+        self.__keyword_exceptions = [] if keyword_exceptions is None else keyword_exceptions
         self.__is_inverse_section: bool = is_inverse_section
 
     # Public methods
     def clear_contents(self):
-        pass
+        for row in self.xl_worksheet.iter_rows(min_row=self.min_row, min_col=self.min_col, max_row=self.max_row,
+                                               max_col=self.max_col):
+            for cell in row:
+                if isinstance(cell, Cell):
+                    cell.value = None
 
     def write_data(self, transactions: pd.DataFrame):
         section_trx: pd.DataFrame = transactions.loc[list(map(self.__trx_filter(), transactions['Description'])), :]
@@ -40,16 +48,25 @@ class TrackerSection:
 
     # Private methods
     def __eq__(self, other):
-        return self.name == other.name and self.min_row == other.min_row and self.max_row == other.max_row \
+        return self.name == other.name and self.trx_type == other.trx_type \
+               and self.min_row == other.min_row and self.max_row == other.max_row \
                and self.min_col == other.min_col and self.max_col == other.max_col \
                and self.__keywords == other._TrackerSection__keywords \
-               and self.__section_trx.equals(other._TrackerSection__section_trx)
+               and self.__is_inverse_section == other._TrackerSection__is_inverse_section
 
     def __trx_filter(self):
         if self.__is_inverse_section:
-            return lambda text: all(key_word not in text for key_word in self.__keywords)
+            if len(self.__keyword_exceptions) == 0:
+                return lambda text: all(key_word not in text for key_word in self.__keywords)
+            else:
+                return lambda text: all(key_word not in text for key_word in self.__keywords) or \
+                                    any(kw_ex in text for kw_ex in self.__keyword_exceptions)
         else:
-            return lambda text: any(key_word in text for key_word in self.__keywords)
+            if len(self.__keyword_exceptions) == 0:
+                return lambda text: any(key_word in text for key_word in self.__keywords)
+            else:
+                return lambda text: (any(key_word in text for key_word in self.__keywords)) and \
+                                    all(kw_ex not in text for kw_ex in self.__keyword_exceptions)
 
 
 class IncomeExpenseTracker:
@@ -64,8 +81,8 @@ class IncomeExpenseTracker:
         self.__transactions: Optional[Transactions] = None
         self.__xl_workbook_path: str = f"{tracker_root_path}/{year}/Income&Expenses{year}.xlsx"
         try:
-            self.__xl_workbook: openpyxl.Workbook = openpyxl.load_workbook(self.__xl_workbook_path)
-            self.__xl_worksheet: openpyxl.workbook.workbook.Worksheet = self.__xl_workbook[f"{month_name} {year}"]
+            self.__xl_workbook: Workbook = openpyxl.load_workbook(self.__xl_workbook_path)
+            self.__xl_worksheet: Worksheet = self.__xl_workbook[f"{month_name} {year}"]
         except FileNotFoundError as fnfe:
             raise tracker.exceptions.TrackerWorkbookDoesNotExist(fnfe)
         except KeyError as ke:
@@ -74,15 +91,19 @@ class IncomeExpenseTracker:
 
     # Public methods
     def add_section(self, name: str, keywords: list[str], min_row: int, max_row: int, min_col: int, max_col: int,
-                    trx_type: str = "expense", is_inverse_section: bool = False):
+                    trx_type: str = "expense", keyword_exceptions: list[str] = None, is_inverse_section: bool = False):
         if name in self.__sections.keys():
             raise tracker.exceptions.TrackerSectionAlreadyExists(f"Section \"{name}\" already exists. If you'd like to "
                                                                  f"replace the existing section, make a call to the "
                                                                  f"\"replace_section()\" method instead.")
 
         section = TrackerSection(name, self.__xl_worksheet, trx_type, keywords, min_row, max_row, min_col, max_col,
-                                 is_inverse_section)
+                                 keyword_exceptions, is_inverse_section)
         self.__sections[section.name] = section
+
+    def close_tracker(self):
+        if self.__xl_workbook:
+            self.__xl_workbook.close()
 
     def delete_section(self, name: str):
         if name not in self.__sections.keys():
@@ -91,13 +112,14 @@ class IncomeExpenseTracker:
         del self.__sections[name]
 
     def replace_section(self, name: str, keywords: list[str], min_row: int, max_row: int, min_col: int, max_col: int,
-                        trx_type: str = "expense", is_inverse_section: bool = False):
+                        trx_type: str = "expense", keyword_exceptions: list[str] = None,
+                        is_inverse_section: bool = False):
         if name not in self.__sections.keys():
             raise tracker.exceptions.TrackerSectionDoesNotExist(f"Cannot replace section \"{name}\" because it does "
                                                                 f"not exist")
 
         section = TrackerSection(name, self.__xl_worksheet, trx_type, keywords, min_row, max_row, min_col,
-                                 max_col, is_inverse_section)
+                                 max_col, keyword_exceptions, is_inverse_section)
         if section == self.__sections[name]:
             raise tracker.exceptions.ReplaceTrackerSectionError(f"Replacement TrackerSection is identical to current "
                                                                 f"one")
@@ -110,6 +132,9 @@ class IncomeExpenseTracker:
         self.__get_transactions()
         logging.info(f"Writing Updated {self.month_name} {self.year} Transactions Data to Tracker")
         self.__write_transaction_data_to_tracker()
+        logging.info(f"Saving Updates to {self.month_name} {self.year} Income & Expense Tracker")
+        self.__xl_workbook.save(self.__xl_workbook_path)
+        self.__xl_workbook.close()
 
     # Private methods
     def __clear_tracker_contents(self):

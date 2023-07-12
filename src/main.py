@@ -15,7 +15,8 @@ except ValueError as root_idx_e:
 # Insert the path to the project's root directory at the specified index of sys.path
 sys.path.insert(ROOT_PATH_IDX, str(PROJECT_ROOT_PATH))
 
-from tracker.resources import MONTHS_NUM_TO_NAME, confirm_proceeding_with_parameters, verify_user_inputs
+from tracker.resources import MONTHS_NUM_TO_NAME, PRIMARY_INCOME_KEYWORDS, RENT_UTIL_KEYWORDS, GROCERY_KEYWORDS, \
+    GAS_KEYWORDS, FIXED_EXPENSE_KEYWORDS, confirm_proceeding_with_parameters, verify_user_inputs
 from tracker.income_expense_tracker import IncomeExpenseTracker
 from tracker.exceptions import TrackerError
 
@@ -31,15 +32,51 @@ def main(argv: list):
         logging.info(f"<{ki.__class__.__name__}> {ki}\n")
         sys.exit(1)
 
+    logging.info(f"Connecting to {MONTHS_NUM_TO_NAME[month]} {year} Income & Expense Tracker...")
     try:
-        logging.info(f"Connecting to {MONTHS_NUM_TO_NAME[month]} {year} Income & Expense Tracker...")
         income_expense_tracker = IncomeExpenseTracker(MONTHS_NUM_TO_NAME[month], month, year,
                                                       f"{sys.path[ROOT_PATH_IDX]}/Tracker")
-        logging.info("Connection Successful")
+    except TrackerError as conn_error:
+        logging.error(f"<{conn_error.__class__.__name__}> {conn_error}\n")
+        sys.exit(1)
+    logging.info("Connection Successful")
+
+    try:
+        income_expense_tracker.add_section("Primary Income", PRIMARY_INCOME_KEYWORDS, min_row=7, max_row=8, min_col=2,
+                                           max_col=8, trx_type="income")
+        logging.info("Added Primary Income Section")
+
+        income_expense_tracker.add_section("Other Income", PRIMARY_INCOME_KEYWORDS, min_row=12, max_row=166, min_col=2,
+                                           max_col=8, trx_type="income", is_inverse_section=True)
+        logging.info("Added Other Income Section")
+
+        income_expense_tracker.add_section("Rent & Utilities", RENT_UTIL_KEYWORDS, min_row=7, max_row=14, min_col=10,
+                                           max_col=16)
+        logging.info("Added Rent & Utilities Section")
+
+        income_expense_tracker.add_section("Groceries", GROCERY_KEYWORDS, min_row=18, max_row=37, min_col=10,
+                                           max_col=16, keyword_exceptions=GAS_KEYWORDS)
+        logging.info("Added Groceries Section")
+
+        income_expense_tracker.add_section("Gas", GAS_KEYWORDS, min_row=41, max_row=50, min_col=10, max_col=16)
+        logging.info("Added Gas Section")
+
+        income_expense_tracker.add_section("Miscellaneous Fixed Expenses", FIXED_EXPENSE_KEYWORDS, min_row=54,
+                                           max_row=63, min_col=10, max_col=16)
+        logging.info("Added Miscellaneous Fixed Expenses Section")
+
+        income_expense_tracker.add_section("Other Expenses", RENT_UTIL_KEYWORDS + GROCERY_KEYWORDS + GAS_KEYWORDS +
+                                           FIXED_EXPENSE_KEYWORDS, min_row=67, max_row=166, min_col=10, max_col=16,
+                                           is_inverse_section=True)
+        logging.info("Added Other Expenses Section")
+
         income_expense_tracker.update_tracker()
     except TrackerError as te:
         logging.error(f"<{te.__class__.__name__}> {te}\n")
         sys.exit(1)
+    finally:
+        logging.info(f"Closing connection to {MONTHS_NUM_TO_NAME[month]} {year} Income & Expense Tracker")
+        income_expense_tracker.close_tracker()
 
 
 if __name__ == "__main__":
