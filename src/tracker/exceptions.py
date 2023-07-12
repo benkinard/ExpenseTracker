@@ -10,6 +10,10 @@ class TrackerWorksheetDoesNotExist(TrackerError):
     pass
 
 
+class EmptyTrackerError(TrackerError):
+    pass
+
+
 class TrackerSectionError(TrackerError):
     pass
 

@@ -126,6 +126,10 @@ class IncomeExpenseTracker:
         self.__sections[name] = section
 
     def update_tracker(self):
+        if len(self.__sections) == 0:
+            raise tracker.exceptions.EmptyTrackerError(f"{self.month_name} {self.year} Income & Expense Tracker "
+                                                       f"contains no TrackerSections. Cannot update.")
+
         logging.info(f"Clearing {self.month_name} {self.year} Income & Expense Tracker Contents")
         self.__clear_tracker_contents()
         logging.info(f"Pulling Updated Transactions Data for {self.month_name} {self.year}")
