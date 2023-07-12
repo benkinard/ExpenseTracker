@@ -18,8 +18,6 @@ sys.path.insert(ROOT_PATH_IDX, str(PROJECT_ROOT_PATH))
 from tracker.resources import MONTHS_NUM_TO_NAME, confirm_proceeding_with_parameters, verify_user_inputs
 from tracker.income_expense_tracker import IncomeExpenseTracker
 from tracker.exceptions import TrackerError
-from transaction.transactions import Transactions
-from transaction.dao.transaction_dao import FlatFileTransactionDAO
 
 
 def main(argv: list):
@@ -33,13 +31,11 @@ def main(argv: list):
         logging.info(f"<{ki.__class__.__name__}> {ki}\n")
         sys.exit(1)
 
-    transactions = Transactions(month, year, FlatFileTransactionDAO(sys.path[ROOT_PATH_IDX]))
-    transactions.get_transactions_for_the_period()
-
     try:
-        income_expense_tracker = IncomeExpenseTracker(MONTHS_NUM_TO_NAME[month], year,
+        logging.info(f"Connecting to {MONTHS_NUM_TO_NAME[month]} {year} Income & Expense Tracker...")
+        income_expense_tracker = IncomeExpenseTracker(MONTHS_NUM_TO_NAME[month], month, year,
                                                       f"{sys.path[ROOT_PATH_IDX]}/Tracker")
-        logging.info("Connected to Income & Expense Tracker")
+        logging.info("Connection Successful")
         income_expense_tracker.update_tracker()
     except TrackerError as te:
         logging.error(f"<{te.__class__.__name__}> {te}\n")

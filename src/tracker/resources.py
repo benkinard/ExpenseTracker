@@ -69,8 +69,6 @@ def confirm_proceeding_with_parameters(month: str, year: int):
 
     if user_response.startswith("n"):
         raise KeyboardInterrupt("Income & Expenses Update Cancelled")
-    else:
-        logging.info(f"Updating {month} {year} Income & Expenses...")
 
 
 def verify_user_inputs(argv: list) -> (int, int):
