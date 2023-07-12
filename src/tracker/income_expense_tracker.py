@@ -27,7 +27,10 @@ class TrackerSection:
         pass
 
     def __eq__(self, other):
-        pass
+        return self.name == other.name and self.min_row == other.min_row and self.max_row == other.max_row \
+               and self.min_col == other.min_col and self.max_col == other.max_col \
+               and self.__keywords == other._TrackerSection__keywords \
+               and self.__section_trx.equals(other._TrackerSection__section_trx)
 
 
 class IncomeExpenseTracker:
