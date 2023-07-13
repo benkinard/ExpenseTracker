@@ -3,7 +3,7 @@ import logging
 import pandas as pd
 import sys
 from datetime import datetime
-from tracker.resources import CREDIT_CARD_KEYWORDS
+from tracker.resources import CREDIT_CARD_KEYWORDS, EXPECTED_ERR_NO
 from transaction.dao.transaction_dao import TransactionDAO, TransactionDataPullError
 
 
@@ -43,7 +43,7 @@ class Transactions:
             self.__separate_income_from_expenses()
         except TransactionDataPullError as tdpe:
             logging.error(f"<{tdpe.__class__.__name__}> {tdpe}\n")
-            sys.exit(1)
+            sys.exit(EXPECTED_ERR_NO)
 
     # Private methods
     def __separate_income_from_expenses(self):
@@ -78,4 +78,4 @@ class Transactions:
         except KeyError as ke:
             logging.error(f"<{ke.__class__.__name__}> Column not found in checking or credit card transaction tables: "
                           f"{ke}")
-            sys.exit(1)
+            sys.exit(EXPECTED_ERR_NO)
