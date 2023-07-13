@@ -1,3 +1,4 @@
+"""Update the Income & Expense Tracker for the month & year input by the User"""
 import logging
 import sys
 import tracker.resources as tr

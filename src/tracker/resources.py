@@ -1,3 +1,4 @@
+"""Define constants and functions to be used by the program"""
 import configparser
 import logging
 import os
