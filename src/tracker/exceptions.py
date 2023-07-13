@@ -1,3 +1,7 @@
+"""Define custom Exceptions encountered by the IncomeExpenseTracker"""
+
+
+# TrackerErrors
 class TrackerError(Exception):
     pass
 
@@ -14,6 +18,7 @@ class EmptyTrackerError(TrackerError):
     pass
 
 
+# TrackerSectionErrors
 class TrackerSectionError(TrackerError):
     pass
 
