@@ -1,5 +1,6 @@
-from abc import ABC, abstractmethod
+"""Define classes for accessing bank account transaction data"""
 import pandas as pd
+from abc import ABC, abstractmethod
 
 
 class TransactionDataPullError(Exception):
@@ -38,6 +39,7 @@ class FlatFileTransactionDAO(TransactionDAO):
                                            f"{dpe}")
         except ValueError as ve:
             raise TransactionDataPullError(f"Unexpected value in checking account transaction \"Balance\" field. {ve}")
+
         return checking_acct_trx.sort_values(by=['Posting Date'], ignore_index=True)
 
     def pull_credit_card_transactions(self, month: int, year: int) -> pd.DataFrame:
@@ -54,6 +56,7 @@ class FlatFileTransactionDAO(TransactionDAO):
             raise TransactionDataPullError(f"Column not found in pulled credit card transaction data: {ke}")
         except ValueError as ve:
             raise TransactionDataPullError(f"Unexpected value in \"Transaction/Posting Date\" field. {ve}")
+
         return credit_card_trx.sort_values(by=['Posting Date'], ignore_index=True)
 
     # Private methods
