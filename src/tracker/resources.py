@@ -2,46 +2,45 @@ import configparser
 import logging
 import os
 import sys
+from pathlib import Path
 
-
-# Set up ConfigParser
-config = configparser.ConfigParser()
-config_file = None
-# Define which paths in sys.path to search for the config file
-PROJECT_PATHS_STOP_IDX = int(os.getenv('ROOT_PATH_INDEX')) + 1
-for path in sys.path[:PROJECT_PATHS_STOP_IDX]:
-    if os.path.isfile(f"{path}/config.ini"):
-        config_file = f"{path}/config.ini"
-        break
-try:
-    if not config_file:
-        raise FileNotFoundError("Please create a \"config.ini\" file in the project root directory")
-except FileNotFoundError as fnfe:
-    logging.error(f"<{fnfe.__class__.__name__}> {fnfe}\n")
-    sys.exit(1)
-config.read(config_file)
 
 # Constants
+EXPECTED_ERR_NO = 1
+UNEXPECTED_ERR_NO = 2
+
 MONTHS_NUM_TO_NAME = {1: "January", 2: "February", 3: "March", 4: "April", 5: "May", 6: "June", 7: "July",
                       8: "August", 9: "September", 10: "October", 11: "November", 12: "December"}
+
+# main.py is executed from src/ whose parent directory is the project root directory: ExpenseTracker/
+PROJECT_ROOT_PATH = str(Path(sys.path[0]).parent)
+
+# Set up ConfigParser
+expected_config_filepath = f"{PROJECT_ROOT_PATH}/config.ini"
+config_file = expected_config_filepath if os.path.isfile(expected_config_filepath) else None
+try:
+    if not config_file:
+        raise FileNotFoundError(f"Missing \"config.ini\" file in the project root directory: {PROJECT_ROOT_PATH}")
+except FileNotFoundError as config_error:
+    logging.error(f"<{config_error.__class__.__name__}> {config_error}\n")
+    sys.exit(EXPECTED_ERR_NO)
+config = configparser.ConfigParser()
+config.read(config_file)
+
+# Define keywords to search for in transaction descriptions when grouping transactions into categories
 try:
     CREDIT_CARD_KEYWORDS = config.get("Transaction Keywords", "CREDIT_CARD").split(",")
-
     FIXED_EXPENSE_KEYWORDS = config.get("Transaction Keywords", "FIXED_EXPENSES").split(",")
-
     GAS_KEYWORDS = config.get("Transaction Keywords", "GASOLINE").split(",")
-
     GROCERY_KEYWORDS = config.get("Transaction Keywords", "GROCERIES").split(",")
-
     PRIMARY_INCOME_KEYWORDS = config.get("Transaction Keywords", "PRIMARY_INCOME").split(",")
-
     RENT_UTIL_KEYWORDS = config.get("Transaction Keywords", "RENT_UTIL").split(",")
 except configparser.NoSectionError as nse:
     logging.error(f"<{nse.__class__.__name__}> {nse}\n")
-    sys.exit(1)
+    sys.exit(EXPECTED_ERR_NO)
 except configparser.NoOptionError as noe:
     logging.error(f"<{noe.__class__.__name__}> {noe}\n")
-    sys.exit(1)
+    sys.exit(EXPECTED_ERR_NO)
 
 
 # Functions
