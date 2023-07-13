@@ -21,8 +21,7 @@ def main(argv: list):
     # Connect to Income&Expense Tracker Sheet corresponding to the month & year input by the User
     logging.info(f"Connecting to {tr.MONTHS_NUM_TO_NAME[month]} {year} Income & Expense Tracker...")
     try:
-        income_expense_tracker = IncomeExpenseTracker(tr.MONTHS_NUM_TO_NAME[month], month, year,
-                                                      f"{tr.PROJECT_ROOT_PATH}/Tracker")
+        income_expense_tracker = IncomeExpenseTracker(tr.MONTHS_NUM_TO_NAME[month], month, year)
     except TrackerError as conn_error:
         logging.error(f"<{conn_error.__class__.__name__}> {conn_error}\n")
         sys.exit(tr.EXPECTED_ERR_NO)

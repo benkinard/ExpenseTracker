@@ -1,13 +1,15 @@
-from openpyxl.cell.cell import Cell
-from openpyxl.workbook.workbook import Workbook
-from openpyxl.worksheet.worksheet import Worksheet
-from transaction.transactions import Transactions
-from transaction.dao.transaction_dao import FlatFileTransactionDAO
-from typing import Optional
+"""Define classes for connecting and writing to an Income/Expense Tracker Excel Workbook"""
 import logging
 import openpyxl
 import pandas as pd
 import tracker.exceptions
+from openpyxl.cell.cell import Cell
+from openpyxl.workbook.workbook import Workbook
+from openpyxl.worksheet.worksheet import Worksheet
+from tracker.resources import PROJECT_ROOT_PATH
+from transaction.transactions import Transactions
+from transaction.dao.transaction_dao import FlatFileTransactionDAO
+from typing import Optional
 
 
 class TrackerSection:
@@ -27,7 +29,7 @@ class TrackerSection:
         self.max_col: int = max_col
         # Private instance variables
         self.__keywords: list[str] = keywords
-        self.__keyword_exceptions = [] if keyword_exceptions is None else keyword_exceptions
+        self.__keyword_exceptions: list[str] = [] if keyword_exceptions is None else keyword_exceptions
         self.__is_inverse_section: bool = is_inverse_section
 
     # Public methods
@@ -39,16 +41,20 @@ class TrackerSection:
                     cell.value = None
 
     def write_data(self, transactions: pd.DataFrame):
+        # From transaction data passed into the method, filter for transactions relevant to this section only
         section_trx: pd.DataFrame = transactions.loc[list(map(self.__trx_filter(), transactions['Description'])), :]
         section_trx.reset_index(drop=True, inplace=True)
+        # Confirm the section is large enough to display the transactions that belong to it
         if len(section_trx) > (self.max_row - self.min_row + 1):
             raise tracker.exceptions.InsufficientTrackerSectionSize(f"TrackerSection \"{self.name}\" transactions "
                                                                     f"({len(section_trx)}) exceeds row allowance "
                                                                     f"({self.max_row - self.min_row + 1})")
 
+        # The Date, Description, and Amount columns begin at the section's first, second, and last columns respectively
         date_column = chr(64 + self.min_col)
         desc_column = chr(64 + self.min_col + 1)
         amt_column = chr(64 + self.max_col)
+        # For each transaction belonging to this section, write info to their respective columns
         for idx, row in section_trx.iterrows():
             self.xl_worksheet[f"{date_column}{str(self.min_row + idx)}"] = row['Posting Date']
             self.xl_worksheet[f"{desc_column}{str(self.min_row + idx)}"] = row['Description']
@@ -63,31 +69,37 @@ class TrackerSection:
                and self.__is_inverse_section == other._TrackerSection__is_inverse_section
 
     def __trx_filter(self):
+        # If this section IS marked as inverse, then filter for transactions that do NOT contain the provided keywords
         if self.__is_inverse_section:
             if len(self.__keyword_exceptions) == 0:
                 return lambda text: all(key_word not in text.upper() for key_word in self.__keywords)
+            # If there are keyword exceptions, make sure they are not included when filtering
             else:
                 return lambda text: all(key_word not in text.upper() for key_word in self.__keywords) or \
                                     any(kw_ex in text.upper() for kw_ex in self.__keyword_exceptions)
+        # If this section is NOT marked as inverse, then filter for transactions that DO contain the provided keywords
         else:
             if len(self.__keyword_exceptions) == 0:
                 return lambda text: any(key_word in text.upper() for key_word in self.__keywords)
+            # If there are keyword exceptions, make sure they are not included when filtering
             else:
                 return lambda text: (any(key_word in text.upper() for key_word in self.__keywords)) and \
                                     all(kw_ex not in text.upper() for kw_ex in self.__keyword_exceptions)
 
 
 class IncomeExpenseTracker:
-    def __init__(self, month_name: str, month_num: int, year: int, tracker_root_path: str):
+    # Class variables
+    AS_OF_DATE_CELL = "T1"
+    TRACKER_ROOT_PATH = f"{PROJECT_ROOT_PATH}/Tracker"
+
+    def __init__(self, month_name: str, month_num: int, year: int):
         # Public instance variables
         self.month_name: str = month_name
         self.month_num: int = month_num
         self.year: int = year
         # Private instance variables
-        # TODO: Move tracker_root_path to class variable
-        self.__tracker_root_path: str = tracker_root_path
         self.__transactions: Optional[Transactions] = None
-        self.__xl_workbook_path: str = f"{tracker_root_path}/{year}/Income&Expenses{year}.xlsx"
+        self.__xl_workbook_path: str = f"{self.__class__.TRACKER_ROOT_PATH}/{year}/Income&Expenses{year}.xlsx"
         try:
             self.__xl_workbook: Workbook = openpyxl.load_workbook(self.__xl_workbook_path)
             self.__xl_worksheet: Worksheet = self.__xl_workbook[f"{month_name} {year}"]
@@ -146,24 +158,24 @@ class IncomeExpenseTracker:
         self.__write_transaction_data_to_tracker()
         logging.info(f"Saving Updates to {self.month_name} {self.year} Income & Expense Tracker")
         self.__xl_workbook.save(self.__xl_workbook_path)
-        self.__xl_workbook.close()
 
     # Private methods
     def __clear_tracker_contents(self):
-        self.__xl_worksheet["T1"] = None
+        self.__xl_worksheet[self.__class__.AS_OF_DATE_CELL] = None
         for section in self.__sections.values():
             section.clear_contents()
 
     def __get_transactions(self):
         if not self.__transactions:
             self.__transactions = Transactions(self.month_num, self.year,
-                                               FlatFileTransactionDAO(self.__tracker_root_path))
+                                               FlatFileTransactionDAO(self.__class__.TRACKER_ROOT_PATH))
 
         self.__transactions.get_transactions_for_the_period()
 
     def __write_transaction_data_to_tracker(self):
-        self.__xl_worksheet["T1"] = self.__transactions.get_as_of_date()
+        self.__xl_worksheet[self.__class__.AS_OF_DATE_CELL] = self.__transactions.get_as_of_date()
         for section in self.__sections.values():
+            # Determine if base transactions the section should filter from should be expense or income transactions
             if section.trx_type == "expense":
                 trx = self.__transactions.get_expenses()
             else:
