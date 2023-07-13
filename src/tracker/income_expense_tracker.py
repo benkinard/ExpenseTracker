@@ -23,14 +23,13 @@ class TrackerSection:
         self.name: str = name
         self.xl_worksheet: Worksheet = xl_worksheet
         self.trx_type: str = trx_type
+        self.keywords: list[str] = keywords
         self.min_row: int = min_row
         self.max_row: int = max_row
         self.min_col: int = min_col
         self.max_col: int = max_col
-        # Private instance variables
-        self.__keywords: list[str] = keywords
-        self.__keyword_exceptions: list[str] = [] if keyword_exceptions is None else keyword_exceptions
-        self.__is_inverse_section: bool = is_inverse_section
+        self.keyword_exceptions: list[str] = [] if keyword_exceptions is None else keyword_exceptions
+        self.is_inverse_section: bool = is_inverse_section
 
     # Public methods
     def clear_contents(self):
@@ -61,30 +60,31 @@ class TrackerSection:
             self.xl_worksheet[f"{amt_column}{str(self.min_row + idx)}"] = row['Amount']
 
     # Private methods
+    def __trx_filter(self):
+        # If this section IS marked as inverse, then filter for transactions that do NOT contain the provided keywords
+        if self.is_inverse_section:
+            if len(self.keyword_exceptions) == 0:
+                return lambda text: all(key_word not in text.upper() for key_word in self.keywords)
+            # If there are keyword exceptions, make sure they are not included when filtering
+            else:
+                return lambda text: all(key_word not in text.upper() for key_word in self.keywords) or \
+                                    any(kw_ex in text.upper() for kw_ex in self.keyword_exceptions)
+        # If this section is NOT marked as inverse, then filter for transactions that DO contain the provided keywords
+        else:
+            if len(self.keyword_exceptions) == 0:
+                return lambda text: any(key_word in text.upper() for key_word in self.keywords)
+            # If there are keyword exceptions, make sure they are not included when filtering
+            else:
+                return lambda text: (any(key_word in text.upper() for key_word in self.keywords)) and \
+                                    all(kw_ex not in text.upper() for kw_ex in self.keyword_exceptions)
+
+    # Magic methods
     def __eq__(self, other):
         return self.name == other.name and self.trx_type == other.trx_type \
                and self.min_row == other.min_row and self.max_row == other.max_row \
                and self.min_col == other.min_col and self.max_col == other.max_col \
-               and self.__keywords == other._TrackerSection__keywords \
-               and self.__is_inverse_section == other._TrackerSection__is_inverse_section
-
-    def __trx_filter(self):
-        # If this section IS marked as inverse, then filter for transactions that do NOT contain the provided keywords
-        if self.__is_inverse_section:
-            if len(self.__keyword_exceptions) == 0:
-                return lambda text: all(key_word not in text.upper() for key_word in self.__keywords)
-            # If there are keyword exceptions, make sure they are not included when filtering
-            else:
-                return lambda text: all(key_word not in text.upper() for key_word in self.__keywords) or \
-                                    any(kw_ex in text.upper() for kw_ex in self.__keyword_exceptions)
-        # If this section is NOT marked as inverse, then filter for transactions that DO contain the provided keywords
-        else:
-            if len(self.__keyword_exceptions) == 0:
-                return lambda text: any(key_word in text.upper() for key_word in self.__keywords)
-            # If there are keyword exceptions, make sure they are not included when filtering
-            else:
-                return lambda text: (any(key_word in text.upper() for key_word in self.__keywords)) and \
-                                    all(kw_ex not in text.upper() for kw_ex in self.__keyword_exceptions)
+               and self.keywords == other.keywords and self.keyword_exceptions == other.keyword_exceptions \
+               and self.is_inverse_section == other.is_inverse_section
 
 
 class IncomeExpenseTracker:
