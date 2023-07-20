@@ -6,7 +6,7 @@ from tracker.exceptions import TrackerError
 from tracker.income_expense_tracker import IncomeExpenseTracker
 
 
-def main(argv: list):
+def main(argv: list[str]):
     # Receive, verify, and confirm User input specifying month & year of Income&Expense Tracker to update
     try:
         month, year = tr.verify_user_inputs(argv)

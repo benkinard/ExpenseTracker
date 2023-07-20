@@ -71,7 +71,7 @@ def confirm_proceeding_with_parameters(month: str, year: int):
         raise KeyboardInterrupt("Income & Expenses Update Cancelled")
 
 
-def verify_user_inputs(argv: list) -> (int, int):
+def verify_user_inputs(argv: list[str]) -> tuple[int, int]:
     """Verify inputs from the user match expectations
 
     Parameters
