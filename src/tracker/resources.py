@@ -1,4 +1,40 @@
-"""Define constants and functions to be used by the program"""
+"""Define constants and functions to be used by the program
+
+Constants
+---------
+EXPECTED_ERR_NO : int
+    Exit code to use when program exits due to handled exception
+UNEXPECTED_ERR_NO : int
+    Exit code to use when program exits due to unhandled exception
+MONTHS_NUM_TO_NAME : dict[int, str]
+    Mapping from number representation of each month to the name of each month
+PROJECT_ROOT_PATH : str
+    File path to project root directory
+CREDIT_CARD_KEYWORDS : list[str]
+    List of keywords to search for in transaction descriptions that qualify the transaction as part of the Credit Card
+    category
+FIXED_EXPENSE_KEYWORDS : list[str]
+    List of keywords to search for in transaction descriptions that qualify the transaction as part of the Fixed
+    Expenses category
+GAS_KEYWORDS : list[str]
+    List of keywords to search for in transaction descriptions that qualify the transaction as part of the Gas category
+GROCERY_KEYWORDS : list[str]
+    List of keywords to search for in transaction descriptions that qualify the transaction as part of the groceries
+    category
+PRIMARY_INCOME_KEYWORDS : list[str]
+    List of keywords to search for in transaction descriptions that qualify the transaction as part of the Primary
+    Income category
+RENT_UTIL_KEYWORDS : list[str]
+    List of keywords to search for in transaction descriptions that qualify the transaction as part of the Rent &
+    Utilities category
+
+Functions
+---------
+confirm_proceeding_with_parameters(month: str, year: int)
+    Confirm the month and year parameters input by the user before proceeding with update
+verify_user_inputs(argv: list[str]) -> tuple[int, int]
+    Verify inputs from the user match expectations
+"""
 import configparser
 import logging
 import os
