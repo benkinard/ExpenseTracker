@@ -32,5 +32,5 @@ Navigate to the month's corresponding sheet, and you will see results like this:
 ## Future Improvements :hammer:
 Currently, access to my bank's APIs is only permitted to businesses with a signed contractual agreement. Should they 
 ever make this access available to individual customers for personal use in projects such as this one, then I intend to 
-implement the `APITransactionDAO` class as found in `src/transaction/dao/transaction_dao.py` to further improve the 
-automation of this process.
+implement the `APITransactionDAO` class as found in [src/transaction/dao/transaction_dao.py](src/transaction/dao/transaction_dao.py) 
+to further improve the automation of this process.
